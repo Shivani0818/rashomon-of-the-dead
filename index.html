@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rashomon of the Dead - Detective AI Mystery Engine</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gothic: {
+                            900: '#0a090d',
+                            800: '#13111c',
+                            700: '#1c182b',
+                            600: '#2a243f',
+                            border: '#383054',
+                            accent: '#a855f7',
+                            spectral: '#22d3ee',
+                            blood: '#ef4444',
+                            gold: '#f59e0b',
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        mono: ['Fira Code', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Gothic Glowing Animations & Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a090d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a243f;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a855f7;
+        }
+        
+        .spectral-glow {
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.25);
+        }
+        .spectral-glow-lg {
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.35);
+        }
+        .text-glow-spectral {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        .text-glow-blood {
+            text-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+        }
+
+        @keyframes spectral-pulse {
+            0%, 100% { opacity: 0.8; transform: translateY(0px); }
+            50% { opacity: 1; transform: translateY(-3px); }
+        }
+        .animate-spectral {
+            animation: spectral-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(1000%); }
+        }
+        .scanline-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .scanline-effect::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 26, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body class="bg-gothic-900 text-gray-200 font-sans min-h-screen flex flex-col selection:bg-purple-900 selection:text-cyan-200 antialiased">
+
+    <!-- Header / Navbar -->
+    <header class="bg-gothic-800/90 border-b border-gothic-border backdrop-blur-md sticky top-0 z-50 px-4 lg:px-8 py-3 flex items-center justify-between shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-lg bg-purple-950 border border-purple-500/50 flex items-center justify-center spectral-glow">
+                <i class="fa-solid fa-ghost text-cyan-400 text-xl animate-spectral"></i>
+            </div>
+            <div>
+                <h1 class="font-cinzel text-xl lg:text-2xl font-bold tracking-wider text-purple-200 flex items-center gap-2">
+                    RASHOMON <span class="text-xs px-2 py-0.5 rounded bg-purple-900/60 text-cyan-300 border border-purple-500/30">OF THE DEAD</span>
+                </h1>
+                <p class="text-xs text-gray-400 font-mono hidden sm:block">Open-Model AI Detective & Fact Ledger Reconciliation System</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center gap-1 sm:gap-2">
+            <button onclick="switchTab('interrogate')" id="tab-btn-interrogate" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-2 transition bg-purple-900/50 text-cyan-300 border border-cyan-500/40">
+                <i class="fa-solid fa-comments"></i> <span class="hidden md:inline">Cross-Examine</span>
+            </button>
+            <button onclick="switchTab('ledger')" id="tab-btn-ledger" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-2 transition text-gray-400 hover:text-gray-200 hover:bg-gothic-700">
+                <i class="fa-solid fa-book-skull"></i> <span class="hidden md:inline">Fact Ledger</span>
+            </button>
+            <button onclick="switchTab('solve')" id="tab-btn-solve" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-2 transition text-gray-400 hover:text-gray-200 hover:bg-gothic-700">
+                <i class="fa-solid fa-gavel"></i> <span class="hidden md:inline">Deduce & Accuse</span>
+            </button>
+            <button onclick="switchTab('hacktober')" id="tab-btn-hacktober" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-2 transition text-amber-400 hover:bg-amber-950/40 border border-amber-500/20">
+                <i class="fa-brands fa-github text-lg"></i> <span class="hidden lg:inline">Hacktoberfest Blueprint</span>
+            </button>
+        </nav>
+
+        <!-- Right Quick Actions -->
+        <div class="flex items-center gap-2">
+            <button onclick="generateNewMystery()" title="Generate Procedural Mystery Case" class="px-3 py-1.5 text-xs rounded-lg bg-gothic-700 hover:bg-gothic-600 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-dice text-cyan-400"></i> <span class="hidden sm:inline">New Case</span>
+            </button>
+            <button onclick="openSettingsModal()" title="AI & Voice Settings" class="p-2 rounded-lg bg-gothic-700 hover:bg-gothic-600 text-gray-300 border border-gothic-border">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 flex flex-col gap-6">
+
+        <!-- TAB 1: CROSS EXAMINATION CONSOLE -->
+        <section id="tab-interrogate" class="tab-content flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-6">
+            
+            <!-- Ghost Witness Selection & Info (Left Panel) -->
+            <div class="lg:col-span-4 flex flex-col gap-4">
+                <div class="bg-gothic-800 rounded-xl p-4 border border-gothic-border shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-cinzel text-lg font-bold text-purple-200 flex items-center gap-2">
+                            <i class="fa-solid fa-ghost text-cyan-400"></i> Ghost Witnesses
+                        </h2>
+                        <span class="text-xs font-mono bg-purple-950 px-2 py-0.5 rounded border border-purple-800 text-purple-300">5 Spectral Entities</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-4">Click a ghost to interrogate. Each witnessed the murder through their biased perspective slice.</p>
+                    
+                    <div id="ghost-list" class="space-y-2.5">
+                        <!-- Rendered by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Ghost Slice Knowledge Ledger Card -->
+                <div class="bg-gothic-800 rounded-xl p-4 border border-gothic-border shadow-xl flex-1 flex flex-col">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-cinzel text-sm font-semibold text-cyan-300 flex items-center gap-2">
+                            <i class="fa-solid fa-brain"></i> <span id="witness-slice-title">Witness Perception Memory</span>
+                        </h3>
+                        <span id="witness-bias-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">Biased Memory</span>
+                    </div>
+                    <div class="text-xs text-gray-400 font-mono bg-gothic-900 p-3 rounded-lg border border-gothic-border/60 flex-1 overflow-y-auto max-h-48 lg:max-h-64" id="witness-knowledge-box">
+                        Select a ghost to view their constrained memory slice index...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interrogation Chat Console (Right Panel) -->
+            <div class="lg:col-span-8 flex flex-col bg-gothic-800 rounded-xl border border-gothic-border shadow-2xl overflow-hidden min-h-[500px]">
+                
+                <!-- Chat Header -->
+                <div class="bg-gothic-700/80 px-5 py-3 border-b border-gothic-border flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div id="active-ghost-avatar" class="w-10 h-10 rounded-full bg-purple-900/80 border border-cyan-400 flex items-center justify-center text-xl text-cyan-300 spectral-glow">
+                            👻
+                        </div>
+                        <div>
+                            <h2 id="active-ghost-name" class="font-cinzel font-bold text-gray-100 text-base">Lord Ashford (Victim)</h2>
+                            <p id="active-ghost-role" class="text-xs text-purple-300 font-mono">Status: Decaying Ethereal Presence</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <!-- AI Engine Mode Indicator -->
+                        <div class="hidden sm:flex items-center gap-1.5 text-xs font-mono px-2.5 py-1 rounded-full bg-gothic-900 border border-gothic-border" id="engine-status-badge">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="text-gray-300" id="engine-status-text">Gemma Local (Simulated)</span>
+                        </div>
+                        <button onclick="clearChatHistory()" class="text-xs text-gray-400 hover:text-red-400 transition" title="Clear Chat History">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Feed -->
+                <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 max-h-[420px] bg-gradient-to-b from-gothic-900/50 to-gothic-800">
+                    <!-- Chat messages appended via JS -->
+                </div>
+
+                <!-- Contradiction Warning Banner (Dynamic) -->
+                <div id="contradiction-banner" class="hidden bg-red-950/90 border-t border-b border-red-500/50 px-4 py-2 flex items-center justify-between text-xs text-red-200 animate-pulse">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-red-400 text-base"></i>
+                        <span><strong class="text-white">CONTRADICTION DETECTED:</strong> <span id="contradiction-text">Statement conflicts with Master Fact Ledger #114</span></span>
+                    </div>
+                    <button onclick="switchTab('ledger')" class="underline hover:text-white font-mono text-[11px]">Inspect Ledger →</button>
+                </div>
+
+                <!-- Chat Input Controls -->
+                <div class="p-3 bg-gothic-700/50 border-t border-gothic-border">
+                    <form id="chat-form" onsubmit="handleChatSubmit(event)" class="flex items-center gap-2">
+                        <input type="text" id="chat-input" placeholder="Ask witness about time of death, poison, or suspects..." class="flex-1 bg-gothic-900 text-sm text-gray-100 placeholder-gray-500 rounded-lg px-4 py-3 border border-gothic-border focus:outline-none focus:border-purple-500 font-sans transition" autocomplete="off">
+                        
+                        <!-- Voice Mic Input Simulation Button -->
+                        <button type="button" onclick="toggleVoiceInput()" id="mic-btn" class="p-3 rounded-lg bg-gothic-900 text-gray-400 hover:text-cyan-300 border border-gothic-border transition" title="Toggle Speech Recognition">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+
+                        <button type="submit" id="send-btn" class="px-5 py-3 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-medium text-sm border border-purple-500/50 shadow-md flex items-center gap-2 transition">
+                            <span>Ask</span>
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </form>
+                    <div class="flex items-center justify-between mt-2 px-1 text-[11px] text-gray-400 font-mono">
+                        <span><i class="fa-solid fa-shield-halved text-purple-400"></i> Gemma Ledger Constraint Active</span>
+                        <span id="speech-indicator" class="hidden text-cyan-400 flex items-center gap-1"><i class="fa-solid fa-volume-high animate-bounce"></i> Voice Synthesis Playing...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: GROUND TRUTH FACT LEDGER -->
+        <section id="tab-ledger" class="tab-content hidden space-y-6">
+            <div class="bg-gothic-800 rounded-xl p-6 border border-gothic-border shadow-xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gothic-border">
+                    <div>
+                        <h2 class="font-cinzel text-2xl font-bold text-purple-200 flex items-center gap-3">
+                            <i class="fa-solid fa-book-skull text-purple-400"></i> Ground Truth Fact Ledger
+                        </h2>
+                        <p class="text-xs text-gray-400 font-mono mt-1">Structured immutable database of actual murder events vs witness perception slices.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleLedgerRawView()" id="raw-ledger-btn" class="px-3 py-1.5 text-xs font-mono rounded bg-gothic-700 hover:bg-gothic-600 border border-gothic-border text-cyan-300">
+                            View JSON Schema
+                        </button>
+                        <span class="px-3 py-1 text-xs rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-mono">
+                            <i class="fa-solid fa-lock"></i> Ledger Immutable
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Visual Fact Ledger Cards -->
+                <div id="visual-ledger-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                    <!-- Cards populated via JS -->
+                </div>
+
+                <!-- Raw JSON Ledger View (Hidden by Default) -->
+                <div id="raw-ledger-view" class="hidden mt-6">
+                    <div class="bg-gothic-900 rounded-xl p-4 border border-purple-900 font-mono text-xs text-cyan-300 overflow-x-auto">
+                        <pre id="json-ledger-content">// Loading Fact Ledger JSON...</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contradiction Flagged Log -->
+            <div class="bg-gothic-800 rounded-xl p-6 border border-gothic-border shadow-xl">
+                <h3 class="font-cinzel text-lg font-bold text-red-300 flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-bug text-red-400"></i> Active Contradiction Matrix
+                </h3>
+                <div id="contradictions-list" class="space-y-3">
+                    <p class="text-xs text-gray-400 italic">No contradictions detected yet. Interrogate witnesses to trigger conflicting claims against the Ground Truth Ledger.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: DEDUCE & ACCUSE (GAME SOLVER) -->
+        <section id="tab-solve" class="tab-content hidden space-y-6">
+            <div class="bg-gothic-800 rounded-xl p-6 border border-gothic-border shadow-xl">
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <h2 class="font-cinzel text-2xl lg:text-3xl font-bold text-amber-200 mb-2">Reconcile Testimonies & Pronounce Sentence</h2>
+                    <p class="text-xs sm:text-sm text-gray-400">Cross-reference all 5 ghost testimonies against the Fact Ledger inconsistencies. Name the murderer, weapon, and true motive to free the haunted manor.</p>
+                </div>
+
+                <!-- Accusation Form -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                    
+                    <!-- Suspect Selection -->
+                    <div class="bg-gothic-900/80 p-4 rounded-xl border border-gothic-border flex flex-col justify-between">
+                        <div>
+                            <label class="block text-xs font-mono text-purple-300 uppercase tracking-wider mb-2">1. The Culprit</label>
+                            <select id="accuse-suspect" class="w-full bg-gothic-800 text-sm text-gray-200 rounded-lg p-3 border border-gothic-border focus:border-purple-500 outline-none">
+                                <option value="">-- Select Primary Suspect --</option>
+                                <option value="Lady Ashford">Lady Ashford (The Widow)</option>
+                                <option value="Bartholomew">Bartholomew (The Butler)</option>
+                                <option value="Cordelia">Cordelia (The Maid)</option>
+                                <option value="Professor Vance">Professor Vance (The Occultist)</option>
+                                <option value="Lord Ashford">Lord Ashford (Self-Inflicted/Accident)</option>
+                            </select>
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-3">Which ghost lied about their whereabouts and motive?</p>
+                    </div>
+
+                    <!-- Weapon Selection -->
+                    <div class="bg-gothic-900/80 p-4 rounded-xl border border-gothic-border flex flex-col justify-between">
+                        <div>
+                            <label class="block text-xs font-mono text-purple-300 uppercase tracking-wider mb-2">2. Cause of Death</label>
+                            <select id="accuse-weapon" class="w-full bg-gothic-800 text-sm text-gray-200 rounded-lg p-3 border border-gothic-border focus:border-purple-500 outline-none">
+                                <option value="">-- Select True Murder Weapon --</option>
+                                <option value="Strych-9 Poison Wine">Strych-9 Poison in Goblet</option>
+                                <option value="Ornate Silver Dagger">Ornate Silver Dagger</option>
+                                <option value="Spectral Ritual Curse">Cursed Amulet Ritual</option>
+                                <option value="Arsenic Tea">Arsenic Chamomile Tea</option>
+                            </select>
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-3">Disregard ghost misperceptions and match ledger toxicological fact.</p>
+                    </div>
+
+                    <!-- Motive Selection -->
+                    <div class="bg-gothic-900/80 p-4 rounded-xl border border-gothic-border flex flex-col justify-between">
+                        <div>
+                            <label class="block text-xs font-mono text-purple-300 uppercase tracking-wider mb-2">3. Primary Motive</label>
+                            <select id="accuse-motive" class="w-full bg-gothic-800 text-sm text-gray-200 rounded-lg p-3 border border-gothic-border focus:border-purple-500 outline-none">
+                                <option value="">-- Select Motive --</option>
+                                <option value="Inheritance & Estate Fraud">Inheritance & Manor Deed</option>
+                                <option value="Blackmail & Secret Affair">Coverup of Secret Affair</option>
+                                <option value="Occult Power Acquisition">Stealing Grimoire Artifact</option>
+                                <option value="Covert Theft Discovery">Hiding Missing Stolen Jewels</option>
+                            </select>
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-3">Synthesize key statements from Cordelia & Bartholomew.</p>
+                    </div>
+                </div>
+
+                <!-- Submit Accusation Button -->
+                <div class="mt-8 text-center">
+                    <button onclick="submitAccusation()" class="px-8 py-3.5 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-cinzel font-bold text-lg rounded-xl border border-purple-400/50 shadow-2xl spectral-glow-lg transition transform hover:-translate-y-0.5">
+                        <i class="fa-solid fa-gavel mr-2"></i> Deliver Final Verdict
+                    </button>
+                </div>
+
+                <!-- Result Modal Dynamic Output -->
+                <div id="verdict-result" class="hidden mt-8 max-w-2xl mx-auto p-6 rounded-xl border transition-all">
+                    <!-- Dynamic verdict content JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: HACKTOBERFEST BLUEPRINT & SETUP GUIDE -->
+        <section id="tab-hacktober" class="tab-content hidden space-y-6">
+            <div class="bg-gothic-800 rounded-xl p-6 border border-gothic-border shadow-xl">
+                <div class="flex items-center gap-4 mb-6 pb-4 border-b border-gothic-border">
+                    <div class="w-12 h-12 rounded-xl bg-amber-950 border border-amber-500 flex items-center justify-center text-amber-400 text-2xl">
+                        <i class="fa-brands fa-github"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-cinzel text-2xl font-bold text-amber-200">Hacktoberfest Project Pitch & Architecture</h2>
+                        <p class="text-xs text-gray-400 font-mono">Open-Model Offline AI Detective Game Powered by Gemma & ElevenLabs</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-gothic-900 p-4 rounded-xl border border-purple-900/50">
+                        <h3 class="font-cinzel font-bold text-purple-300 text-sm mb-2"><i class="fa-solid fa-microchip mr-2 text-cyan-400"></i> Gemma LLM Engine</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed">Runs completely local via Ollama / LM Studio or WebLLM. Restricts prompt contexts strictly to individual witness ledger slices to enforce Rashomon effect.</p>
+                    </div>
+                    <div class="bg-gothic-900 p-4 rounded-xl border border-purple-900/50">
+                        <h3 class="font-cinzel font-bold text-purple-300 text-sm mb-2"><i class="fa-solid fa-waveform-lines mr-2 text-amber-400"></i> ElevenLabs Voice Sync</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed">Assigns distinct voice IDs and acoustic timbre to each ghost. Supports API key passthrough or offline Web Speech API fallbacks.</p>
+                    </div>
+                    <div class="bg-gothic-900 p-4 rounded-xl border border-purple-900/50">
+                        <h3 class="font-cinzel font-bold text-purple-300 text-sm mb-2"><i class="fa-solid fa-database mr-2 text-emerald-400"></i> Zero Token Cost</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed">Open-source architecture allows infinite offline mystery generation with deterministic ground truth verification.</p>
+                    </div>
+                </div>
+
+                <!-- Ollama Local Setup Terminal Instructions -->
+                <div class="space-y-4">
+                    <h3 class="font-cinzel font-bold text-lg text-gray-200">Local Setup Instructions (Ollama + Gemma 2)</h3>
+                    <div class="bg-gothic-900 rounded-xl p-4 border border-gothic-border font-mono text-xs text-cyan-300 space-y-2">
+                        <p class="text-gray-500"># 1. Install Ollama & pull Gemma 2 model</p>
+                        <p class="text-emerald-400">ollama run gemma:2b</p>
+                        <p class="text-gray-500 mt-3"># 2. Configure CORS headers for browser fetch</p>
+                        <p class="text-emerald-400">OLLAMA_ORIGINS="*" ollama serve</p>
+                        <p class="text-gray-500 mt-3"># 3. Connect to local endpoint in Rashomon Settings</p>
+                        <p class="text-amber-300">Endpoint: http://localhost:11434/api/generate</p>
+                    </div>
+                </div>
+
+                <!-- Hacktoberfest Contribution Guidelines -->
+                <div class="mt-8 pt-6 border-t border-gothic-border">
+                    <h3 class="font-cinzel font-bold text-lg text-amber-300 mb-3">Hacktoberfest Pull Request Ideas</h3>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-gray-300 font-mono">
+                        <li class="bg-gothic-900 p-3 rounded-lg border border-gothic-border/60 flex items-center gap-2">
+                            <i class="fa-solid fa-code-pull-request text-purple-400"></i>
+                            <span>PR #1: Add dynamic audio spectral visualizer for voice playback</span>
+                        </li>
+                        <li class="bg-gothic-900 p-3 rounded-lg border border-gothic-border/60 flex items-center gap-2">
+                            <i class="fa-solid fa-code-pull-request text-purple-400"></i>
+                            <span>PR #2: Support WebLLM in-browser Gemma execution (Wasm/WebGPU)</span>
+                        </li>
+                        <li class="bg-gothic-900 p-3 rounded-lg border border-gothic-border/60 flex items-center gap-2">
+                            <i class="fa-solid fa-code-pull-request text-purple-400"></i>
+                            <span>PR #3: Expand procedural mystery generator with room mapping</span>
+                        </li>
+                        <li class="bg-gothic-900 p-3 rounded-lg border border-gothic-border/60 flex items-center gap-2">
+                            <i class="fa-solid fa-code-pull-request text-purple-400"></i>
+                            <span>PR #4: Custom ElevenLabs voice clone parameter fine-tuning UI</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gothic-800 rounded-2xl border border-gothic-border max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeSettingsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="font-cinzel text-xl font-bold text-purple-200 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-cyan-400"></i> Model & Audio Settings
+            </h3>
+
+            <div class="space-y-4 text-xs font-mono">
+                <!-- AI Engine Choice -->
+                <div>
+                    <label class="block text-gray-300 mb-1">Gemma Model Provider Mode</label>
+                    <select id="setting-ai-mode" class="w-full bg-gothic-900 text-gray-200 rounded-lg p-2.5 border border-gothic-border focus:border-purple-500 outline-none">
+                        <option value="simulated">Local Gemma Model (Simulated Offline Logic)</option>
+                        <option value="ollama">Local Ollama Endpoint (http://localhost:11434)</option>
+                    </select>
+                </div>
+
+                <!-- Ollama URL -->
+                <div id="ollama-url-container">
+                    <label class="block text-gray-300 mb-1">Ollama API Endpoint URL</label>
+                    <input type="text" id="setting-ollama-url" value="http://localhost:11434/api/generate" class="w-full bg-gothic-900 text-gray-200 rounded-lg p-2.5 border border-gothic-border outline-none">
+                </div>
+
+                <!-- ElevenLabs Key -->
+                <div>
+                    <label class="block text-gray-300 mb-1">ElevenLabs API Key (Optional Real TTS)</label>
+                    <input type="password" id="setting-eleven-key" placeholder="xi-api-key..." class="w-full bg-gothic-900 text-gray-200 rounded-lg p-2.5 border border-gothic-border outline-none">
+                    <p class="text-[10px] text-gray-500 mt-1">If blank, browser Web Speech Synthesis API with custom spectral filters will be used.</p>
+                </div>
+
+                <!-- Sound FX Toggle -->
+                <div class="flex items-center justify-between pt-2 border-t border-gothic-border">
+                    <span class="text-gray-300">Web Audio FX & Spectral Sounds</span>
+                    <input type="checkbox" id="setting-sound-fx" checked class="w-4 h-4 accent-purple-600 rounded">
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2">
+                <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-sans text-xs font-semibold">
+                    Save Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // ==========================================
+        // 1. MASTER FACT LEDGER & GHOST WITNESS DATA
+        // ==========================================
+        
+        let masterLedger = {
+            caseId: "CASE-1892-ASHFORD",
+            title: "The Murder of Lord Ashford",
+            timeOfDeath: "11:15 PM",
+            location: "The Grand Library",
+            victim: "Lord Ashford",
+            causeOfDeath: "Strych-9 Poison Wine Swapped in Goblet",
+            trueCulprit: "Lady Ashford",
+            trueMotive: "Inheritance & Estate Fraud",
+            facts: [
+                { id: 101, topic: "Time", detail: "Lord Ashford died precisely at 11:15 PM due to sudden respiratory paralysis." },
+                { id: 102, topic: "Weapon", detail: "Toxicology confirms Strych-9 poison was mixed into the vintage red goblet wine." },
+                { id: 103, topic: "Preparation", detail: "Lady Ashford acquired the Strych-9 poison vial from the apothecary 2 days prior." },
+                { id: 104, topic: "Butler Action", detail: "Bartholomew poured untouched wine from the decanter at 11:00 PM in the kitchen." },
+                { id: 105, topic: "Maid Witness", detail: "Cordelia saw Lady Ashford near the library side-table at 11:10 PM slipping something into the glass." },
+                { id: 106, topic: "Occult Distraction", detail: "Professor Vance was chanting in the conservatory and did not witness the poison swap." }
+            ]
+        };
+
+        const ghostWitnesses = [
+            {
+                id: "lord_ashford",
+                name: "Lord Ashford",
+                role: "The Murdered Victim",
+                avatar: "👑",
+                voicePitch: 0.7,
+                voiceRate: 0.85,
+                bias: "Believes he was stabbed in the back by a shadow blade due to sudden sharp back spasms.",
+                ledger_slice: [
+                    "I was sitting in my library chair at around 11:15 PM.",
+                    "Suddenly a burning pain flared in my chest and spine. It felt like an invisible spectral blade!",
+                    "Bartholomew brought me my wine goblet at 11:00 PM. It tasted fine initially.",
+                    "I suspect Professor Vance attacked me with occult shadow magic."
+                ]
+            },
+            {
+                id: "lady_ashford",
+                name: "Lady Ashford",
+                role: "The Grieving Widow",
+                avatar: "🥀",
+                voicePitch: 1.2,
+                voiceRate: 0.9,
+                bias: "Claims she was reading in the Conservatory all night; insists Bartholomew brought tampered wine.",
+                ledger_slice: [
+                    "I was peacefully reading poetry in the Conservatory from 10:30 PM until midnight.",
+                    "I never went near the Grand Library table at 11:10 PM.",
+                    "Bartholomew was acting extremely nervous while handling the silver tray at 11:00 PM.",
+                    "My husband was a tyrant, but I would never handle deadly chemicals!"
+                ]
+            },
+            {
+                id: "bartholomew",
+                name: "Bartholomew",
+                role: "The Head Butler",
+                avatar: "🍷",
+                voicePitch: 0.8,
+                voiceRate: 1.0,
+                bias: "Terrified of being blamed; swears the wine left his hands pure at 11:00 PM.",
+                ledger_slice: [
+                    "I poured Lord Ashford's wine directly from the cellar decanter at 11:00 PM precisely.",
+                    "I set the glass on the library tray and left the room immediately.",
+                    "I noticed Lady Ashford lingering near the library entrance at 11:08 PM.",
+                    "I heard a glass shatter at 11:15 PM and ran back to find his lordship collapsed."
+                ]
+            },
+            {
+                id: "cordelia",
+                name: "Cordelia",
+                role: "The House Maid",
+                avatar: "🕯️",
+                voicePitch: 1.4,
+                voiceRate: 1.1,
+                bias: "Gossip-prone and observational; saw Lady Ashford near the goblet.",
+                ledger_slice: [
+                    "I was cleaning the sconces in the library hallway at 11:10 PM.",
+                    "I distinctly saw Lady Ashford lean over his lordship's wine goblet with a small glass vial!",
+                    "Lord Ashford screamed at 11:15 PM holding his throat, not his back.",
+                    "Lady Ashford recently argued with him over his updated Will."
+                ]
+            },
+            {
+                id: "professor_vance",
+                name: "Professor Vance",
+                role: "The Occult Scholar",
+                avatar: "🔮",
+                voicePitch: 0.6,
+                voiceRate: 0.95,
+                bias: "Obsessed with supernatural curses; attributes death to spectral rituals.",
+                ledger_slice: [
+                    "The atmospheric ether spiked with demonic force at precisely 11:15 PM!",
+                    "A ancient curse attached to Lord Ashford's bloodline manifested as respiratory choking.",
+                    "I was conducting a warding ritual in the Conservatory during the entire hour.",
+                    "Poison is too mundane; this was clearly an astral assault!"
+                ]
+            }
+        ];
+
+        let currentGhost = ghostWitnesses[0];
+        let chatHistories = {};
+        let detectedContradictions = [];
+
+        // Audio Effects Engine (Web Audio API)
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSoundEffect(type) {
+            const soundEnabled = document.getElementById('setting-sound-fx')?.checked;
+            if (!soundEnabled) return;
+
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'spectral') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.5);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.5);
+                } else if (type === 'contradiction') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                }
+            } catch (e) {
+                console.warn('Audio FX error', e);
+            }
+        }
+
+        // Initialize Chat Histories per Ghost
+        ghostWitnesses.forEach(g => {
+            chatHistories[g.id] = [
+                { sender: 'ghost', text: `Greetings detective... I am ${g.name}. ${g.bias}` }
+            ];
+        });
+
+        // ==========================================
+        // 2. UI INITIALIZATION & TAB SWITCHING
+        // ==========================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGhostList();
+            renderKnowledgeBox();
+            renderChatMessages();
+            renderVisualLedger();
+            updateJsonLedger();
+        });
+
+        function switchTab(tabId) {
+            playSoundEffect('spectral');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-900/50', 'text-cyan-300', 'border', 'border-cyan-500/40');
+                btn.classList.add('text-gray-400');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-purple-900/50', 'text-cyan-300', 'border', 'border-cyan-500/40');
+                activeBtn.classList.remove('text-gray-400');
+            }
+        }
+
+        function renderGhostList() {
+            const container = document.getElementById('ghost-list');
+            container.innerHTML = ghostWitnesses.map(g => {
+                const isActive = g.id === currentGhost.id;
+                return `
+                    <div onclick="selectGhost('${g.id}')" class="p-3 rounded-lg border cursor-pointer transition flex items-center justify-between ${
+                        isActive 
+                            ? 'bg-purple-950/80 border-cyan-400 spectral-glow' 
+                            : 'bg-gothic-900/80 border-gothic-border/80 hover:border-purple-500/50'
+                    }">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">${g.avatar}</span>
+                            <div>
+                                <h4 class="font-cinzel text-xs font-bold text-gray-200">${g.name}</h4>
+                                <p class="text-[11px] text-gray-400 font-mono">${g.role}</p>
+                            </div>
+                        </div>
+                        ${isActive ? '<i class="fa-solid fa-chevron-right text-xs text-cyan-400"></i>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectGhost(ghostId) {
+            currentGhost = ghostWitnesses.find(g => g.id === ghostId);
+            renderGhostList();
+            renderKnowledgeBox();
+            renderChatMessages();
+
+            document.getElementById('active-ghost-avatar').innerText = currentGhost.avatar;
+            document.getElementById('active-ghost-name').innerText = currentGhost.name;
+            document.getElementById('active-ghost-role').innerText = `Role: ${currentGhost.role}`;
+            playSoundEffect('spectral');
+        }
+
+        function renderKnowledgeBox() {
+            document.getElementById('witness-slice-title').innerText = `${currentGhost.name}'s Knowledge Slice`;
+            const box = document.getElementById('witness-knowledge-box');
+            box.innerHTML = `
+                <div class="space-y-1.5">
+                    <p class="text-purple-300 font-bold border-b border-purple-900/50 pb-1 mb-2">Subjective Perception Constraints:</p>
+                    ${currentGhost.ledger_slice.map(s => `<div class="flex items-start gap-1.5"><span class="text-cyan-400">•</span><span>"${s}"</span></div>`).join('')}
+                </div>
+            `;
+        }
+
+        function renderChatMessages() {
+            const container = document.getElementById('chat-messages');
+            const messages = chatHistories[currentGhost.id] || [];
+
+            container.innerHTML = messages.map(m => {
+                const isGhost = m.sender === 'ghost';
+                return `
+                    <div class="flex flex-col ${isGhost ? 'items-start' : 'items-end'}">
+                        <div class="max-w-[85%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed ${
+                            isGhost 
+                                ? 'bg-gothic-700 text-purple-100 border border-purple-500/30 rounded-tl-none shadow-md' 
+                                : 'bg-purple-900 text-white rounded-tr-none border border-cyan-400/30'
+                        }">
+                            ${m.text}
+                        </div>
+                        <span class="text-[10px] font-mono text-gray-500 mt-1 px-1">
+                            ${isGhost ? currentGhost.name : 'Detective'}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearChatHistory() {
+            chatHistories[currentGhost.id] = [
+                { sender: 'ghost', text: `Memory reset. I am ready for questioning, detective.` }
+            ];
+            renderChatMessages();
+        }
+
+        // ==========================================
+        // 3. INTERROGATION ENGINE & CONTRADICTIONS
+        // ==========================================
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Add user message
+            chatHistories[currentGhost.id].push({ sender: 'user', text: text });
+            input.value = '';
+            renderChatMessages();
+
+            // Show Thinking Indicator
+            chatHistories[currentGhost.id].push({ sender: 'ghost', text: '<i>[Consulting spectral ledger memory...]</i>' });
+            renderChatMessages();
+
+            // Fetch or simulate LLM response based on slice
+            const responseText = await queryGhostLLM(currentGhost, text);
+
+            // Replace thinking indicator with real response
+            chatHistories[currentGhost.id].pop();
+            chatHistories[currentGhost.id].push({ sender: 'ghost', text: responseText });
+            renderChatMessages();
+
+            // Trigger Voice Synthesis Simulation
+            speakText(responseText, currentGhost);
+
+            // Cross-reference Contradiction Engine
+            checkContradictions(currentGhost, responseText);
+        }
+
+        async function queryGhostLLM(ghost, question) {
+            const mode = document.getElementById('setting-ai-mode').value;
+
+            if (mode === 'ollama') {
+                try {
+                    const endpoint = document.getElementById('setting-ollama-url').value;
+                    const prompt = `System: You are playing the ghost witness ${ghost.name} (${ghost.role}). You are dead. You must only answer based on this exact constrained slice of facts you witnessed: ${JSON.stringify(ghost.ledger_slice)}. If asked about something outside this, express confusion or stick strictly to your bias: "${ghost.bias}".\n\nUser Question: ${question}\nGhost Answer:`;
+
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model: 'gemma:2b', prompt: prompt, stream: false })
+                    });
+                    const data = await res.json();
+                    return data.response || "My memory grows faint in the dark...";
+                } catch (err) {
+                    console.warn("Ollama connection failed, falling back to local simulation engine", err);
+                }
+            }
+
+            // Local Offline Gemma Simulation Fallback Matrix
+            await new Promise(r => setTimeout(r, 600)); // Simulate response latency
+
+            const qLower = question.toLowerCase();
+
+            if (qLower.includes('time') || qLower.includes('when')) {
+                if (ghost.id === 'lord_ashford') return "The darkness took me right around 11:15 PM! Sharp agony pierced my spine!";
+                if (ghost.id === 'lady_ashford') return "I was in the Conservatory until midnight! Whatever happened at 11:15 PM in the library was far from me.";
+                if (ghost.id === 'bartholomew') return "I delivered the wine tray at 11:00 PM precisely. The room was quiet then.";
+                if (ghost.id === 'cordelia') return "I saw Lady Ashford near the goblet at 11:10 PM, right before he collapsed at 11:15 PM!";
+                if (ghost.id === 'professor_vance') return "The cosmic ether ruptured at 11:15 PM sharp! The stars foretold it.";
+            }
+
+            if (qLower.includes('poison') || qLower.includes('wine') || qLower.includes('stab') || qLower.includes('weapon')) {
+                if (ghost.id === 'lord_ashford') return "It felt like an invisible dagger stabbed into my back! Though... my mouth tasted bitter like burnt almonds.";
+                if (ghost.id === 'lady_ashford') return "I know nothing of poisons! Bartholomew was the one serving beverages all evening.";
+                if (ghost.id === 'bartholomew') return "The wine was untampered when it left the kitchen cellar decanter, I swear upon my honor!";
+                if (ghost.id === 'cordelia') return "I saw Lady Ashford tip a clear vial directly into Lord Ashford's wine goblet!";
+                if (ghost.id === 'professor_vance') return "Physical weapons are an illusion! A ancient bloodline curse gripped his heart!";
+            }
+
+            if (qLower.includes('who') || qLower.includes('suspect') || qLower.includes('killer')) {
+                if (ghost.id === 'lady_ashford') return "Inquire with the butler Bartholomew. He had access to his lordship's tray.";
+                if (ghost.id === 'cordelia') return "It was Lady Ashford! She wanted his estate before the new Will was signed.";
+                if (ghost.id === 'lord_ashford') return "Professor Vance was babbling dark incantations in the halls all night!";
+            }
+
+            // Default constrained fallback
+            return `${ghost.ledger_slice[Math.floor(Math.random() * ghost.ledger_slice.length)]}`;
+        }
+
+        // ElevenLabs / Web Speech Voice Simulation
+        function speakText(text, ghost) {
+            if (!('speechSynthesis' in window)) return;
+            
+            window.speechSynthesis.cancel(); // Stop active speech
+
+            const cleanText = text.replace(/<[^>]*>/g, '');
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.pitch = ghost.voicePitch;
+            utterance.rate = ghost.voiceRate;
+
+            const indicator = document.getElementById('speech-indicator');
+            if (indicator) indicator.classList.remove('hidden');
+
+            utterance.onend = () => {
+                if (indicator) indicator.classList.add('hidden');
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleVoiceInput() {
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                alert("Speech recognition API not supported in this browser engine.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            const micBtn = document.getElementById('mic-btn');
+
+            micBtn.classList.add('text-red-400', 'animate-pulse');
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('chat-input').value = transcript;
+                micBtn.classList.remove('text-red-400', 'animate-pulse');
+            };
+
+            recognition.onerror = recognition.onend = () => {
+                micBtn.classList.remove('text-red-400', 'animate-pulse');
+            };
+
+            recognition.start();
+        }
+
+        // Contradiction Detection Engine
+        function checkContradictions(ghost, response) {
+            const respLower = response.toLowerCase();
+            let flagged = null;
+
+            // Lady Ashford lies about not being near the library table
+            if (ghost.id === 'lady_ashford' && respLower.includes('never went near') || respLower.includes('conservatory until midnight')) {
+                flagged = {
+                    ghost: ghost.name,
+                    claim: "Claims she was exclusively in the Conservatory and never near the library glass.",
+                    truth: "Master Fact Ledger #105: Cordelia directly witnessed Lady Ashford at 11:10 PM slipping poison into the goblet.",
+                    severity: "HIGH"
+                };
+            }
+
+            // Lord Ashford misremembers weapon as dagger
+            if (ghost.id === 'lord_ashford' && (respLower.includes('stabbed') || respLower.includes('blade'))) {
+                flagged = {
+                    ghost: ghost.name,
+                    claim: "Remembers suffering a physical back stab/blade wound.",
+                    truth: "Master Fact Ledger #102: Toxicology confirms Strych-9 respiratory poison swap, causing severe back muscle spasms misperceived as stabbing.",
+                    severity: "MEDIUM"
+                };
+            }
+
+            if (flagged) {
+                playSoundEffect('contradiction');
+                const banner = document.getElementById('contradiction-banner');
+                document.getElementById('contradiction-text').innerText = `${flagged.ghost}: ${flagged.claim}`;
+                banner.classList.remove('hidden');
+
+                if (!detectedContradictions.some(c => c.claim === flagged.claim)) {
+                    detectedContradictions.push(flagged);
+                    renderContradictionsList();
+                }
+            }
+        }
+
+        // ==========================================
+        // 4. FACT LEDGER VIEWERS & RENDERERS
+        // ==========================================
+
+        function renderVisualLedger() {
+            const container = document.getElementById('visual-ledger-view');
+            container.innerHTML = masterLedger.facts.map(fact => `
+                <div class="bg-gothic-900/90 p-4 rounded-xl border border-purple-900/60 shadow-lg flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950 text-cyan-300 border border-purple-800">Fact #${fact.id}</span>
+                            <span class="text-xs font-mono text-purple-400 font-bold">${fact.topic}</span>
+                        </div>
+                        <p class="text-xs text-gray-300 leading-relaxed">${fact.detail}</p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-gothic-border/40 text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-check"></i> Ground Truth Verified
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateJsonLedger() {
+            document.getElementById('json-ledger-content').innerText = JSON.stringify(masterLedger, null, 2);
+        }
+
+        function toggleLedgerRawView() {
+            const visual = document.getElementById('visual-ledger-view');
+            const raw = document.getElementById('raw-ledger-view');
+            const btn = document.getElementById('raw-ledger-btn');
+
+            if (raw.classList.contains('hidden')) {
+                raw.classList.remove('hidden');
+                visual.classList.add('hidden');
+                btn.innerText = "View Card Matrix";
+            } else {
+                raw.classList.add('hidden');
+                visual.classList.remove('hidden');
+                btn.innerText = "View JSON Schema";
+            }
+        }
+
+        function renderContradictionsList() {
+            const container = document.getElementById('contradictions-list');
+            if (detectedContradictions.length === 0) return;
+
+            container.innerHTML = detectedContradictions.map(c => `
+                <div class="bg-red-950/40 p-3.5 rounded-lg border border-red-500/40 text-xs flex flex-col md:flex-row md:items-center justify-between gap-2">
+                    <div>
+                        <span class="font-bold text-red-300 font-cinzel">[${c.ghost}]</span>
+                        <span class="text-gray-300 ml-1 font-mono">"${c.claim}"</span>
+                        <p class="text-[11px] text-amber-300/90 mt-1"><i class="fa-solid fa-arrow-right-long mr-1"></i> <strong>Contradicts:</strong> ${c.truth}</p>
+                    </div>
+                    <span class="px-2 py-0.5 text-[10px] font-mono rounded bg-red-900 text-white self-start md:self-auto">${c.severity} DISCREPANCY</span>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // 5. ACCUSATION MATRIX & GAME SOLVER
+        // ==========================================
+
+        function submitAccusation() {
+            const suspect = document.getElementById('accuse-suspect').value;
+            const weapon = document.getElementById('accuse-weapon').value;
+            const motive = document.getElementById('accuse-motive').value;
+            const resultBox = document.getElementById('verdict-result');
+
+            if (!suspect || !weapon || !motive) {
+                alert("Please select a suspect, weapon, and motive before pronouncing sentence.");
+                return;
+            }
+
+            resultBox.classList.remove('hidden');
+
+            const isCorrectCulprit = suspect === masterLedger.trueCulprit;
+            const isCorrectWeapon = weapon.includes("Strych-9 Poison");
+            const isCorrectMotive = motive.includes("Inheritance");
+
+            if (isCorrectCulprit && isCorrectWeapon && isCorrectMotive) {
+                playSoundEffect('spectral');
+                resultBox.className = "mt-8 max-w-2xl mx-auto p-6 rounded-xl border bg-emerald-950/80 border-emerald-500 text-emerald-100 shadow-2xl spectral-glow";
+                resultBox.innerHTML = `
+                    <div class="text-center space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-emerald-900 border border-emerald-400 mx-auto flex items-center justify-center text-emerald-300 text-2xl">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <h3 class="font-cinzel text-2xl font-bold text-emerald-300">MYSTERY RECONCILED & SOLVED!</h3>
+                        <p class="text-xs sm:text-sm text-emerald-200 leading-relaxed">
+                            Brilliant deduction, Detective! You saw through Lady Ashford's deceptive testimony. She acquired Strych-9 from the apothecary, slipped it into Lord Ashford's goblet while he looked away at 11:10 PM, and caused his respiratory collapse at 11:15 PM to claim the estate before his Will was updated.
+                        </p>
+                        <div class="pt-2 text-xs font-mono text-cyan-300">
+                            Fact Ledger Reconciled: 100% Match • All 5 Ghost Souls Exorcised
+                        </div>
+                    </div>
+                `;
+            } else {
+                playSoundEffect('contradiction');
+                resultBox.className = "mt-8 max-w-2xl mx-auto p-6 rounded-xl border bg-red-950/80 border-red-500 text-red-100 shadow-2xl";
+                resultBox.innerHTML = `
+                    <div class="text-center space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-red-900 border border-red-400 mx-auto flex items-center justify-center text-red-300 text-2xl">
+                            <i class="fa-solid fa-xmark"></i>
+                        </div>
+                        <h3 class="font-cinzel text-2xl font-bold text-red-300">FLAWED DEDUCTION</h3>
+                        <p class="text-xs sm:text-sm text-red-200 leading-relaxed">
+                            Your verdict failed to reconcile all ledger contradictions! Cross-examine Cordelia and Bartholomew again to match the toxicology truth against Lady Ashford's alibi.
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        // ==========================================
+        // 6. PROCEDURAL MYSTERY GENERATOR
+        // ==========================================
+
+        function generateNewMystery() {
+            playSoundEffect('spectral');
+
+            const victims = ["Baron Von Faust", "Duchess Eleanor", "Sir Sterling", "Lady Ravenscroft"];
+            const culprits = ["Lady Ashford", "Bartholomew", "Cordelia", "Professor Vance"];
+            const causes = ["Arsenic Chamomile Tea", "Strych-9 Poison Wine Swapped in Goblet", "Silver Dagger In Back"];
+
+            const newVictim = victims[Math.floor(Math.random() * victims.length)];
+            const newCulprit = culprits[Math.floor(Math.random() * culprits.length)];
+            const newCause = causes[Math.floor(Math.random() * causes.length)];
+
+            masterLedger.caseId = `CASE-${Math.floor(1000 + Math.random() * 9000)}`;
+            masterLedger.title = `The Murder of ${newVictim}`;
+            masterLedger.victim = newVictim;
+            masterLedger.trueCulprit = newCulprit;
+            masterLedger.causeOfDeath = newCause;
+
+            masterLedger.facts[0].detail = `${newVictim} died at 11:15 PM under mysterious circumstances.`;
+            masterLedger.facts[1].detail = `Cause of death confirmed as ${newCause}.`;
+
+            ghostWitnesses[0].name = `${newVictim} (Ghost)`;
+
+            renderGhostList();
+            renderKnowledgeBox();
+            renderVisualLedger();
+            updateJsonLedger();
+
+            detectedContradictions = [];
+            renderContradictionsList();
+
+            alert(`New Mystery Generated: ${masterLedger.title}! Ledger updated offline.`);
+        }
+
+        // ==========================================
+        // 7. SETTINGS MODAL CONTROLS
+        // ==========================================
+
+        function openSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.add('hidden');
+            const mode = document.getElementById('setting-ai-mode').value;
+            const badge = document.getElementById('engine-status-text');
+            if (badge) {
+                badge.innerText = mode === 'ollama' ? 'Ollama / Gemma Local API' : 'Gemma Local (Simulated)';
+            }
+        }
+    </script>
+</body>
+</html>
